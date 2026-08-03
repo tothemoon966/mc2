@@ -51,7 +51,7 @@
   <div class="stars" id="stars"></div>
   <div class="floating-things" id="floatingThings"></div>
 
-  <div class="title">DOMINGO, 28/06</div>
+  <div class="title">DOMINGO, 02/08</div>
   <div class="subtitle">separadas pela via costeira ♥</div>
 
   <div class="scene">
@@ -98,10 +98,16 @@
   </div>
 
   <button class="btn" onclick="sendLilies()">🌸 mandar lírios 🌸</button>
+
+  <div style="margin-top:1.4rem;text-align:center;">
+    <div style="color:#888;font-size:5px;margin-bottom:6px;">♪ love song ♪</div>
+    <audio id="player" src="love-song.mp3" loop></audio>
+    <button class="btn" id="music-btn" onclick="toggleMusic()" style="font-size:6px;padding:8px 14px;">▶ tocar música</button>
+  </div>
 </div>
 
 <script>
-const target = new Date(2026, 5, 28, 18, 30, 0, 0);
+const target = new Date(2026, 7, 3, 18, 0, 0, 0);
 
 function pad(n){ return String(n).padStart(2,'0'); }
 
@@ -236,6 +242,18 @@ function drawEla(){
 
 drawVoce();
 drawEla();
+
+function toggleMusic(){
+  const audio = document.getElementById('player');
+  const btn = document.getElementById('music-btn');
+  if(audio.paused){
+    audio.play();
+    btn.textContent = '❚❚ pausar música';
+  } else {
+    audio.pause();
+    btn.textContent = '▶ tocar música';
+  }
+}
 </script>
 </body>
 </html>
