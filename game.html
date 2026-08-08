@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚔️ minigame ♥</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:#0a0a1e;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:'Press Start 2P',monospace;padding:1.5rem 1rem;}
+    .back-btn{color:#888;font-size:6px;background:none;border:1px solid #333;border-radius:4px;padding:6px 10px;font-family:'Press Start 2P',monospace;cursor:pointer;margin-bottom:1rem;align-self:flex-start;}
+    .back-btn:hover{color:#ff9de2;border-color:#7b4faf;}
+    h1{color:#f9d923;font-size:8px;text-align:center;margin-bottom:.3rem;text-shadow:2px 2px #e94560;}
+    .sub{color:#888;font-size:5px;text-align:center;margin-bottom:1rem;}
+    #game-ui{display:flex;justify-content:space-between;align-items:center;width:300px;padding:4px 0;}
+    #score-display{color:#f9d923;font-size:6px;}
+    #lives-display{color:#e94560;font-size:8px;letter-spacing:2px;}
+    #game-msg{color:#ff9de2;font-size:6px;text-align:center;min-height:14px;margin-bottom:4px;width:300px;}
+    #game-canvas{display:block;border:2px solid #2a2a4a;border-radius:6px;background:#0d1020;touch-action:none;}
+    #mobile-controls{display:flex;justify-content:space-between;width:300px;margin-top:8px;}
+    .mob-btn{background:#1a0a2e;color:#ff9de2;border:2px solid #7b4faf;border-radius:6px;padding:14px 28px;font-family:'Press Start 2P',monospace;font-size:14px;cursor:pointer;user-select:none;-webkit-user-select:none;}
+    #start-btn{background:#4a2d6e;color:#ff9de2;border:2px solid #7b4faf;border-radius:4px;padding:8px 16px;font-family:'Press Start 2P',monospace;font-size:6px;cursor:pointer;box-shadow:0 3px 0 #2a1a3e;margin-top:8px;}
+    #start-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #2a1a3e;}
+    .hint{color:#444;font-size:5px;text-align:center;margin-top:8px;}
+  </style>
+</head>
+<body>
+  <button class="back-btn" onclick="location.href='index.html'">← voltar</button>
+  <h1>⚔️ proteja o coração! ⚔️</h1>
+  <div class="sub">maria caroline vs os palitinhos</div>
+
+  <div id="game-ui">
+    <span id="score-display">pontos: 0</span>
+    <span id="lives-display">♥♥♥</span>
+  </div>
+  <div id="game-msg">bloqueie os palitinhos antes que cheguem na maria clara!</div>
+  <canvas id="game-canvas" width="300" height="220"></canvas>
+  <div id="mobile-controls">
+    <button class="mob-btn" id="btn-left">◀</button>
+    <button class="mob-btn" id="btn-right">▶</button>
+  </div>
+  <button id="start-btn" onclick="startGame()">▶ jogar</button>
+  <div class="hint">teclado: setas ou A/D &nbsp;•&nbsp; mobile: botões ou arraste</div>
+
+<script>
+const canvas = document.getElementById('game-canvas');
+const ctx = canvas.getContext('2d');
+const W = 300, H = 220;
+
+// ── DESENHA HERÓI (Maria Caroline pixel art com escudo/espada) ──
+function drawHero(cx, cy, moving) {
+  const s = 3;
+  const ox = Math.round(cx) - 10*s, oy = cy - 26*s;
+  const SK='#8B5E3C', H2='#3B1F0A', CT='#C9912A', PA='#5a3a1a', SH='#2a1a0a', EY='#1a0a00';
+  const SC='#4a90d9', SCE='#2a5a9a', SW='#cccccc', SWH='#7B4A2D';
+  function p(x,y,c,w=1,h=1){ctx.fillStyle=c;ctx.fillRect(x,y,w,h);}
+  // cabelo
+  for(let x=4;x<16;x++) p(ox+x*s,oy,H2,s,s*3);
+  p(ox+3*s,oy,H2,s*14,s); p(ox+3*s,oy+s,H2,s*14,s); p(ox+3*s,oy+s*2,H2,s*14,s);
+  p(ox+3*s,oy+s*3,H2,s*3,s); p(ox+14*s,oy+s*3,H2,s*3,s);
+  p(ox+3*s,oy+s*8,H2,s*2,s*4); p(ox+15*s,oy+s*8,H2,s*2,s*4);
+  // rosto
+  for(let x=4;x<16;x++) for(let y=3;y<9;y++) p(ox+x*s,oy+y*s,SK,s,s);
+  p(ox+3*s,oy+s*4,SK,s,s*4); p(ox+16*s,oy+s*4,SK,s,s*4);
+  // olhos
+  p(ox+6*s,oy+s*5,EY,s*2,s*2); p(ox+12*s,oy+s*5,EY,s*2,s*2);
+  // boca
+  p(ox+8*s,oy+s*8,'#c07060',s*4,s);
+  // pescoço
+  p(ox+8*s,oy+s*9,SK,s*4,s*2);
+  // casaco
+  for(let x=2;x<18;x++) for(let y=11;y<18;y++) p(ox+x*s,oy+y*s,CT,s,s);
+  for(let y=11;y<17;y++){ p(ox,oy+y*s,CT,s*3,s); p(ox+17*s,oy+y*s,CT,s*3,s); }
+  // calça
+  for(let x=4;x<16;x++) for(let y=18;y<24;y++) p(ox+x*s,oy+y*s,PA,s,s);
+  p(ox+9*s,oy+s*20,'#3a2a0a',s*2,s*4);
+  // sapatos
+  for(let x=4;x<9;x++) p(ox+x*s,oy+s*24,SH,s,s*2);
+  for(let x=11;x<16;x++) p(ox+x*s,oy+s*24,SH,s,s*2);
+  // escudo e espada
+  if(moving){
+    p(ox-s*3,oy+s*6,SCE,s*4,s*11); p(ox-s*2,oy+s*7,SC,s*2,s*9); p(ox-s*3,oy+s*10,'#f9d923',s,s*3);
+    for(let y=3;y<13;y++) p(ox+s*20,oy+y*s,SW,s,s);
+    p(ox+s*19,oy+s*2,SW,s,s); p(ox+s*18,oy+s*13,SWH,s*4,s);
+    for(let y=14;y<17;y++) p(ox+s*19,oy+y*s,SWH,s*2,s);
+  } else {
+    for(let y=0;y<10;y++) p(ox+s*20,oy+y*s,SW,s,s);
+    p(ox+s*19,oy-s,SW,s,s); p(ox+s*18,oy+s*10,SWH,s*4,s);
+    for(let y=11;y<14;y++) p(ox+s*19,oy+y*s,SWH,s*2,s);
+    p(ox-s*2,oy+s*10,SCE,s*3,s*7); p(ox-s,oy+s*11,SC,s,s*5);
+  }
+}
+
+// ── DESENHA PALITINHO CAINDO ──
+function drawStickman(x, y, angle, color) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+
+  // cabeça
+  ctx.beginPath();
+  ctx.arc(0, -22, 6, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // corpo
+  ctx.beginPath();
+  ctx.moveTo(0, -16);
+  ctx.lineTo(0, 0);
+  ctx.stroke();
+
+  // braços
+  ctx.beginPath();
+  ctx.moveTo(-10, -10);
+  ctx.lineTo(10, -10);
+  ctx.stroke();
+
+  // perna esq
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(-8, 14);
+  ctx.stroke();
+
+  // perna dir
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(8, 14);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+// ── FAÍSCA ──
+function drawSpark(x, y, life) {
+  const cols = ['#f9d923','#ff9de2','#e94560','#ffffff','#ff9900'];
+  ctx.globalAlpha = life;
+  cols.forEach((c, i) => {
+    const a = (i / cols.length) * Math.PI * 2 + life;
+    const r = (1 - life) * 16;
+    ctx.fillStyle = c;
+    ctx.fillRect(x + Math.cos(a)*r, y + Math.sin(a)*r, 3, 3);
+  });
+  ctx.globalAlpha = 1;
+}
+
+// ── ESTADO ──
+let gameRunning=false, score=0, lives=3, frame=0;
+let heroX = W/2;
+const HERO_Y = H - 38;
+let enemies = [], sparks = [];
+let keys = {left:false, right:false};
+let spawnTimer=0, spawnInterval=75;
+let animId=null, touchX=null;
+
+const STICK_COLORS = ['#e94560','#ff9de2','#7ecfff','#f9d923','#aaffaa','#ffaa44'];
+
+function updateHUD(){
+  document.getElementById('score-display').textContent = 'pontos: '+score;
+  document.getElementById('lives-display').textContent = '♥'.repeat(Math.max(0,lives))+'🖤'.repeat(Math.max(0,3-lives));
+}
+
+function spawnEnemy(){
+  enemies.push({
+    x: Math.random()*(W-40)+20,
+    y: -30,
+    spd: 1.4 + Math.random()*1.2 + (score/300),
+    angle: (Math.random()-0.5)*0.8,       // ângulo de rotação inicial
+    spin: (Math.random()-0.5)*0.08,       // velocidade de giro
+    color: STICK_COLORS[Math.floor(Math.random()*STICK_COLORS.length)],
+    done: false
+  });
+}
+
+function startGame(){
+  score=0; lives=3; frame=0; heroX=W/2;
+  enemies=[]; sparks=[]; spawnTimer=0; spawnInterval=75;
+  gameRunning=true;
+  document.getElementById('start-btn').style.display='none';
+  document.getElementById('game-msg').textContent='◀ ▶ para mover • bloqueie os palitinhos!';
+  updateHUD();
+  if(animId) cancelAnimationFrame(animId);
+  loop();
+}
+
+function endGame(){
+  gameRunning=false;
+  document.getElementById('game-msg').textContent='fim de jogo! pontos: '+score+' ♥';
+  document.getElementById('start-btn').textContent='▶ jogar de novo';
+  document.getElementById('start-btn').style.display='block';
+  ctx.fillStyle='rgba(10,10,30,0.8)';
+  ctx.fillRect(40,75,220,70);
+  ctx.fillStyle='#f9d923'; ctx.font='9px "Press Start 2P",monospace'; ctx.textAlign='center';
+  ctx.fillText('game over!', W/2, 108);
+  ctx.fillStyle='#ff9de2'; ctx.font='6px "Press Start 2P",monospace';
+  ctx.fillText('pontos: '+score, W/2, 128);
+  ctx.textAlign='left';
+}
+
+function loop(){
+  if(!gameRunning) return;
+  animId = requestAnimationFrame(loop);
+  frame++;
+
+  const moving = keys.left || keys.right;
+  if(keys.left)  heroX = Math.max(22, heroX-3.5);
+  if(keys.right) heroX = Math.min(W-22, heroX+3.5);
+
+  // spawn
+  spawnTimer++;
+  if(spawnTimer >= spawnInterval){
+    spawnTimer=0; spawnEnemy();
+    if(spawnInterval > 36) spawnInterval = Math.max(36, spawnInterval-1.5);
+  }
+
+  // mover inimigos
+  enemies.forEach(e=>{
+    if(e.done) return;
+    e.y  += e.spd;
+    e.angle += e.spin; // gira enquanto cai
+    // colisão com herói (caixa ~36px largura, 28 centro)
+    if(e.y+14 >= HERO_Y-10 && e.y-22 <= HERO_Y+10 && e.x+12 > heroX-22 && e.x-12 < heroX+22){
+      e.done=true;
+      sparks.push({x:e.x, y:e.y, life:1});
+      score+=10; updateHUD();
+    }
+  });
+
+  // remove os que passaram
+  enemies = enemies.filter(e=>{
+    if(!e.done && e.y > H+20){ lives--; updateHUD(); if(lives<=0) endGame(); return false; }
+    return !e.done || e.y <= H+20;
+  });
+
+  sparks.forEach(s=> s.life -= 0.055);
+  sparks = sparks.filter(s=> s.life > 0);
+
+  // ── DRAW ──
+  ctx.fillStyle='#0a0a1e'; ctx.fillRect(0,0,W,H);
+  // estrelinhas
+  for(let i=0;i<20;i++){
+    const sx=(i*97+frame*0.15)%W, sy=(i*61+3)%H;
+    ctx.fillStyle=`rgba(255,255,255,${0.1+Math.sin(frame*0.04+i)*0.2})`;
+    ctx.fillRect(sx,sy,2,2);
+  }
+  // chão
+  ctx.fillStyle='#1e1e3a'; ctx.fillRect(0,H-10,W,10);
+  ctx.fillStyle='#3a3a60'; ctx.fillRect(0,H-12,W,2);
+
+  // palitinhos
+  enemies.forEach(e=>{ if(!e.done && e.y > -30) drawStickman(e.x, e.y, e.angle, e.color); });
+
+  // herói
+  drawHero(heroX, HERO_Y, moving);
+
+  // sparks
+  sparks.forEach(s=> drawSpark(s.x, s.y, s.life));
+}
+
+// tela inicial
+(function(){
+  ctx.fillStyle='#0a0a1e'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#ff9de2'; ctx.font='7px "Press Start 2P",monospace'; ctx.textAlign='center';
+  ctx.fillText('proteja maria clara! ♥', W/2, H/2-10);
+  ctx.fillStyle='#555'; ctx.font='5px "Press Start 2P",monospace';
+  ctx.fillText('clique em jogar para começar', W/2, H/2+14);
+  ctx.textAlign='left';
+})();
+
+// controles
+document.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='a')keys.left=true;if(e.key==='ArrowRight'||e.key==='d')keys.right=true;});
+document.addEventListener('keyup',e=>{if(e.key==='ArrowLeft'||e.key==='a')keys.left=false;if(e.key==='ArrowRight'||e.key==='d')keys.right=false;});
+const BL=document.getElementById('btn-left'), BR=document.getElementById('btn-right');
+BL.addEventListener('touchstart',e=>{e.preventDefault();keys.left=true;},{passive:false});
+BL.addEventListener('touchend',e=>{e.preventDefault();keys.left=false;},{passive:false});
+BR.addEventListener('touchstart',e=>{e.preventDefault();keys.right=true;},{passive:false});
+BR.addEventListener('touchend',e=>{e.preventDefault();keys.right=false;},{passive:false});
+BL.addEventListener('mousedown',()=>keys.left=true); BL.addEventListener('mouseup',()=>keys.left=false);
+BR.addEventListener('mousedown',()=>keys.right=true); BR.addEventListener('mouseup',()=>keys.right=false);
+canvas.addEventListener('touchstart',e=>{touchX=e.touches[0].clientX;},{passive:true});
+canvas.addEventListener('touchmove',e=>{if(touchX===null)return;const dx=e.touches[0].clientX-touchX;heroX=Math.min(W-22,Math.max(22,heroX+dx*0.6));touchX=e.touches[0].clientX;},{passive:true});
+canvas.addEventListener('touchend',()=>touchX=null,{passive:true});
+</script>
+</body>
+</html>
