@@ -26,14 +26,14 @@
 </head>
 <body>
   <button class="back-btn" onclick="location.href='index.html'">← voltar</button>
-  <h1>⚔️ proteja o coração! ⚔️</h1>
-  <div class="sub">maria caroline vs os palitinhos</div>
+  <h1>⚔️ proteja maria clara! ⚔️</h1>
+  <div class="sub">carol vs os caras do teto</div>
 
   <div id="game-ui">
     <span id="score-display">pontos: 0</span>
     <span id="lives-display">♥♥♥</span>
   </div>
-  <div id="game-msg">bloqueie os palitinhos antes que cheguem na maria clara!</div>
+  <div id="game-msg">bloqueie os caras que estão no teto antes que cheguem em maria clara!</div>
   <canvas id="game-canvas" width="300" height="220"></canvas>
   <div id="mobile-controls">
     <button class="mob-btn" id="btn-left">◀</button>
@@ -178,7 +178,7 @@ function startGame(){
   enemies=[]; sparks=[]; spawnTimer=0; spawnInterval=75;
   gameRunning=true;
   document.getElementById('start-btn').style.display='none';
-  document.getElementById('game-msg').textContent='◀ ▶ para mover • bloqueie os palitinhos!';
+  document.getElementById('game-msg').textContent='◀ ▶ para mover • não deixa chegarem em maria clara!';
   updateHUD();
   if(animId) cancelAnimationFrame(animId);
   loop();
